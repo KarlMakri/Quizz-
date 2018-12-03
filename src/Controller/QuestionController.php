@@ -5,6 +5,7 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Question;
 use App\Entity\Answer;
 use App\Entity\Category;
@@ -39,14 +40,31 @@ class QuestionController extends AbstractController
         'Difficile' => 3
       );
 
-
-
-
       return $this->render('question/index.html.twig', [
           'questions' => $questions,
           'categories' => $categories,
           'difficulty' => $difficulty
       ]);
+    }
+
+    /**
+     * @Route("/question/json", name="question")
+     */
+    public function index_json(Request $request)
+    {
+      // récupération paramètres URL
+      $category = $request->query->get('category');
+      $difficult = $request->query->get('difficulty');
+
+      $questions = $this->getDoctrine()
+        ->getRepository(Question::class)
+        //->findAll()
+        ->findByFiltersAssoc($category, $difficult)
+        ;
+
+      var_dump($questions);
+
+      return new JsonResponse('ok');
     }
 
     /**
@@ -95,5 +113,19 @@ class QuestionController extends AbstractController
       return $this->render('form.html.twig', [
           'form' => $form->createView(),
       ]);
+    }
+
+
+    /**
+     * @Route("/question/test", name="question_test")
+     */
+    public function test()
+    {
+      $questions = $this->getDoctrine()
+        ->getRepository(Question::class)
+        //->findAll()
+        ->findByJson()
+        ;
+      return new Response(json_encode($questions));
     }
 }
