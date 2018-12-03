@@ -7,6 +7,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Question;
 use App\Entity\Answer;
+use App\Entity\Category;
 use App\Form\QuestionType;
 use App\Form\AnswerType;
 
@@ -15,15 +16,37 @@ class QuestionController extends AbstractController
     /**
      * @Route("/question", name="question")
      */
-    public function index()
+    public function index(Request $request)
     {
+      // récupération paramètres URL
+      $category = $request->query->get('category');
+      $difficult = $request->query->get('difficulty');
+
       $questions = $this->getDoctrine()
         ->getRepository(Question::class)
+        //->findAll()
+        ->findByFilters($category, $difficult)
+        ;
+
+      // filtres de recherche
+      $categories = $this->getDoctrine()
+        ->getRepository(Category::class)
         ->findAll();
 
-        return $this->render('question/index.html.twig', [
-            'questions' => $questions,
-        ]);
+      $difficulty = array(
+        'Facile' => 1,
+        'Intermédiaire' => 2,
+        'Difficile' => 3
+      );
+
+
+
+
+      return $this->render('question/index.html.twig', [
+          'questions' => $questions,
+          'categories' => $categories,
+          'difficulty' => $difficulty
+      ]);
     }
 
     /**
